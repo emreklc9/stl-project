@@ -1,17 +1,22 @@
-import './Topbar.css'
+import { STL_MODELS } from "../models";
+import "./Topbar.scss";
 
 const NAV_ITEMS = [
-  { id: 'viewer', label: '3D Görüntüleyici', active: true },
-  { id: 'coords', label: 'Koordinatlar', active: false },
-]
+  { id: "viewer", label: "3D Görüntüleyici", active: true },
+  { id: "coords", label: "Koordinatlar", active: false },
+];
 
-export default function Topbar({ modelName = 'Spiderman.stl' }) {
+export default function Topbar({ modelId, onModelChange }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
         <div className="topbar-brand">
           <span className="topbar-logo" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M16 4L26 10v12L16 28 6 22V10L16 4z"
                 stroke="currentColor"
@@ -32,7 +37,7 @@ export default function Topbar({ modelName = 'Spiderman.stl' }) {
           </div>
         </div>
 
-        <nav className="topbar-nav" aria-label="Ana menü">
+        {/* <nav className="topbar-nav" aria-label="Ana menü">
           <ul>
             {NAV_ITEMS.map((item) => (
               <li key={item.id}>
@@ -45,16 +50,24 @@ export default function Topbar({ modelName = 'Spiderman.stl' }) {
                 </a>
               </li>
             ))}
-          </ul>
-        </nav>
+          </ul> 
+         </nav> */}
 
         <div className="topbar-actions">
-          <span className="topbar-model-badge" title="Yüklü model">
-            <span className="topbar-model-dot" aria-hidden="true" />
-            {modelName}
-          </span>
+          <select
+            className="topbar-model-select"
+            value={modelId}
+            onChange={(e) => onModelChange(e.target.value)}
+            aria-label="STL modeli seç"
+          >
+            {STL_MODELS.map((model) => (
+              <option key={model.id} value={model.id}>
+                {model.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     </header>
-  )
+  );
 }

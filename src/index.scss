@@ -9,6 +9,13 @@
   --accent-border: rgba(139, 92, 246, 0.35);
   --lilac: #c4b5fd;
   --lilac-dark: #7c3aed;
+  --coord-x: #dc2626;
+  --coord-y: #16a34a;
+  --coord-z: #2563eb;
+  --coord-label: #6b7280;
+  --coord-index-bg: rgba(139, 92, 246, 0.14);
+  --coord-index-text: #6d28d9;
+  --coord-item-bg: rgba(255, 255, 255, 0.7);
   --social-bg: rgba(244, 243, 236, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
@@ -44,6 +51,13 @@
     --accent-border: rgba(167, 139, 250, 0.4);
     --lilac: #c4b5fd;
     --lilac-dark: #8b5cf6;
+    --coord-x: #f87171;
+    --coord-y: #4ade80;
+    --coord-z: #60a5fa;
+    --coord-label: #9ca3af;
+    --coord-index-bg: rgba(167, 139, 250, 0.2);
+    --coord-index-text: #c4b5fd;
+    --coord-item-bg: rgba(0, 0, 0, 0.25);
     --social-bg: rgba(47, 48, 58, 0.5);
     --shadow:
       rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
@@ -78,15 +92,18 @@ h1 {
   letter-spacing: inherit;
   margin: 0;
 }
+
 h2 {
   font-size: 24px;
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
+
   @media (max-width: 1024px) {
     font-size: 20px;
   }
 }
+
 p {
   margin: 0;
 }

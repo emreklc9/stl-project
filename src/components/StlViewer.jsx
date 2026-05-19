@@ -2,18 +2,25 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
-import spidermanStl from '../assets/file/Spiderman.stl?url'
-import './StlViewer.css'
+import { STL_MODELS } from '../models'
+import './StlViewer.scss'
 
 function formatCoord(value) {
   return value.toFixed(3)
 }
 
-export default function StlViewer() {
+export default function StlViewer({ modelId }) {
   const containerRef = useRef(null)
   const markersGroupRef = useRef(null)
   const [points, setPoints] = useState([])
   const [meshReady, setMeshReady] = useState(false)
+
+  const model = STL_MODELS.find((m) => m.id === modelId) ?? STL_MODELS[0]
+
+  useEffect(() => {
+    setPoints([])
+    setMeshReady(false)
+  }, [modelId])
 
   useEffect(() => {
     const container = containerRef.current
@@ -90,7 +97,7 @@ export default function StlViewer() {
 
     const loader = new STLLoader()
     loader.load(
-      spidermanStl,
+      model.url,
       (geometry) => {
         geometry.computeVertexNormals()
         geometry.center()
@@ -162,7 +169,7 @@ export default function StlViewer() {
       container.removeChild(renderer.domElement)
       setMeshReady(false)
     }
-  }, [])
+  }, [model.url])
 
   const clearPoints = () => {
     const markersGroup = markersGroupRef.current
@@ -182,7 +189,7 @@ export default function StlViewer() {
         <div className="stl-viewer" ref={containerRef} />
         <p className="stl-viewer-hint">
           {meshReady
-            ? 'Shift + sol tık: nokta seç · Sol sürükle: döndür · Tekerlek: zoom'
+            ? `${model.label} · Shift + sol tık: nokta seç · Sol sürükle: döndür · Tekerlek: zoom`
             : 'Model yükleniyor…'}
         </p>
       </div>
@@ -207,14 +214,17 @@ export default function StlViewer() {
               <li key={p.id} className="stl-point-item">
                 <span className="stl-point-index">#{index + 1}</span>
                 <div className="stl-point-coords">
-                  <span>
-                    X: <code>{formatCoord(p.x)}</code>
+                  <span className="stl-coord stl-coord--x">
+                    <span className="stl-coord-label">X</span>
+                    <code>{formatCoord(p.x)}</code>
                   </span>
-                  <span>
-                    Y: <code>{formatCoord(p.y)}</code>
+                  <span className="stl-coord stl-coord--y">
+                    <span className="stl-coord-label">Y</span>
+                    <code>{formatCoord(p.y)}</code>
                   </span>
-                  <span>
-                    Z: <code>{formatCoord(p.z)}</code>
+                  <span className="stl-coord stl-coord--z">
+                    <span className="stl-coord-label">Z</span>
+                    <code>{formatCoord(p.z)}</code>
                   </span>
                 </div>
               </li>

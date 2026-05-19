@@ -1,0 +1,51 @@
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 28px 24px 48px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 20px 16px 40px;
+    gap: 20px;
+  }
+}
+
+.app-hero {
+  h1 {
+    margin: 0 0 8px;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--text-h);
+
+    @media (max-width: 768px) {
+      font-size: 1.4rem;
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--text);
+    max-width: 52ch;
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 0.8rem;
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--text-h);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-border);
+    border-radius: 5px;
+    box-shadow: 0 1px 0 var(--border);
+  }
+}
