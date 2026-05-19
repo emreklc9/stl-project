@@ -2,25 +2,24 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
-import { STL_MODELS } from '../models'
 import './StlViewer.scss'
 
 function formatCoord(value) {
   return value.toFixed(3)
 }
 
-export default function StlViewer({ modelId }) {
+export default function StlViewer({ model }) {
   const containerRef = useRef(null)
   const markersGroupRef = useRef(null)
   const [points, setPoints] = useState([])
   const [meshReady, setMeshReady] = useState(false)
-
-  const model = STL_MODELS.find((m) => m.id === modelId) ?? STL_MODELS[0]
+  const [loadError, setLoadError] = useState(null)
 
   useEffect(() => {
     setPoints([])
     setMeshReady(false)
-  }, [modelId])
+    setLoadError(null)
+  }, [model.url])
 
   useEffect(() => {
     const container = containerRef.current
@@ -66,12 +65,13 @@ export default function StlViewer({ modelId }) {
     let markerRadius = 1
     let pointId = 0
 
-    const addMarker = (position) => {
+    const addMarker = (position, id) => {
       const marker = new THREE.Mesh(
         new THREE.SphereGeometry(markerRadius, 20, 20),
         new THREE.MeshBasicMaterial({ color: 0xffdd00 }),
       )
       marker.position.copy(position)
+      marker.userData.pointId = id
       markersGroup.add(marker)
     }
 
@@ -87,48 +87,52 @@ export default function StlViewer({ modelId }) {
       if (hits.length === 0) return
 
       const { x, y, z } = hits[0].point
-      addMarker(hits[0].point)
-
       pointId += 1
+      addMarker(hits[0].point, pointId)
       setPoints((prev) => [...prev, { id: pointId, x, y, z }])
     }
 
     renderer.domElement.addEventListener('pointerdown', onPointerDown)
 
+    const fitMesh = (geometry) => {
+      geometry.computeVertexNormals()
+      geometry.center()
+
+      mesh = new THREE.Mesh(
+        geometry,
+        new THREE.MeshStandardMaterial({
+          color: 0xe63946,
+          metalness: 0.15,
+          roughness: 0.45,
+        }),
+      )
+      scene.add(mesh)
+
+      const box = new THREE.Box3().setFromObject(mesh)
+      const size = box.getSize(new THREE.Vector3())
+      const maxDim = Math.max(size.x, size.y, size.z)
+      markerRadius = maxDim * 0.006
+
+      const fitDistance = maxDim / (2 * Math.tan((camera.fov * Math.PI) / 360))
+      camera.position.set(fitDistance, fitDistance * 0.6, fitDistance)
+      camera.near = maxDim / 100
+      camera.far = maxDim * 100
+      camera.updateProjectionMatrix()
+      controls.target.set(0, size.y * 0.1, 0)
+      controls.update()
+      setMeshReady(true)
+      setLoadError(null)
+    }
+
     const loader = new STLLoader()
     loader.load(
       model.url,
-      (geometry) => {
-        geometry.computeVertexNormals()
-        geometry.center()
-
-        mesh = new THREE.Mesh(
-          geometry,
-          new THREE.MeshStandardMaterial({
-            color: 0xe63946,
-            metalness: 0.15,
-            roughness: 0.45,
-          }),
-        )
-        scene.add(mesh)
-
-        const box = new THREE.Box3().setFromObject(mesh)
-        const size = box.getSize(new THREE.Vector3())
-        const maxDim = Math.max(size.x, size.y, size.z)
-        markerRadius = maxDim * 0.006
-
-        const fitDistance = maxDim / (2 * Math.tan((camera.fov * Math.PI) / 360))
-        camera.position.set(fitDistance, fitDistance * 0.6, fitDistance)
-        camera.near = maxDim / 100
-        camera.far = maxDim * 100
-        camera.updateProjectionMatrix()
-        controls.target.set(0, size.y * 0.1, 0)
-        controls.update()
-        setMeshReady(true)
-      },
+      fitMesh,
       undefined,
       (error) => {
         console.error('STL yüklenemedi:', error)
+        setLoadError('Model yüklenemedi. Geçerli bir STL dosyası seçin.')
+        setMeshReady(false)
       },
     )
 
@@ -171,13 +175,27 @@ export default function StlViewer({ modelId }) {
     }
   }, [model.url])
 
+  const disposeMarker = (marker) => {
+    marker.geometry.dispose()
+    marker.material.dispose()
+  }
+
+  const removePoint = (id) => {
+    const markersGroup = markersGroupRef.current
+    if (markersGroup) {
+      const marker = markersGroup.children.find((child) => child.userData.pointId === id)
+      if (marker) {
+        disposeMarker(marker)
+        markersGroup.remove(marker)
+      }
+    }
+    setPoints((prev) => prev.filter((p) => p.id !== id))
+  }
+
   const clearPoints = () => {
     const markersGroup = markersGroupRef.current
     if (markersGroup) {
-      markersGroup.children.forEach((child) => {
-        child.geometry.dispose()
-        child.material.dispose()
-      })
+      markersGroup.children.forEach(disposeMarker)
       markersGroup.clear()
     }
     setPoints([])
@@ -187,10 +205,12 @@ export default function StlViewer({ modelId }) {
     <div className="stl-viewer-layout">
       <div className="stl-viewer-wrap">
         <div className="stl-viewer" ref={containerRef} />
-        <p className="stl-viewer-hint">
-          {meshReady
-            ? `${model.label} · Shift + sol tık: nokta seç · Sol sürükle: döndür · Tekerlek: zoom`
-            : 'Model yükleniyor…'}
+        <p className={`stl-viewer-hint${loadError ? ' stl-viewer-hint--error' : ''}`}>
+          {loadError
+            ? loadError
+            : meshReady
+              ? `${model.label} · Shift + sol tık: nokta seç · Sol sürükle: döndür · Tekerlek: zoom`
+              : 'Model yükleniyor…'}
         </p>
       </div>
 
@@ -212,7 +232,18 @@ export default function StlViewer({ modelId }) {
           <ul className="stl-points-list">
             {points.map((p, index) => (
               <li key={p.id} className="stl-point-item">
-                <span className="stl-point-index">#{index + 1}</span>
+                <div className="stl-point-meta">
+                  <span className="stl-point-index">#{index + 1}</span>
+                  <button
+                    type="button"
+                    className="stl-point-delete"
+                    onClick={() => removePoint(p.id)}
+                    aria-label={`${index + 1}. noktayı sil`}
+                    title="Bu noktayı sil"
+                  >
+                    Sil
+                  </button>
+                </div>
                 <div className="stl-point-coords">
                   <span className="stl-coord stl-coord--x">
                     <span className="stl-coord-label">X</span>

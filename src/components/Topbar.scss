@@ -42,15 +42,16 @@ $mobile-breakpoint: 768px;
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.95);
+    overflow: hidden;
     box-shadow: 0 2px 8px rgba(76, 29, 149, 0.2);
+  }
 
-    svg {
-      width: 22px;
-      height: 22px;
-    }
+  &-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
   }
 
   &-brand-text {
@@ -121,8 +122,46 @@ $mobile-breakpoint: 768px;
   &-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-shrink: 0;
+  }
+
+  &-file-input {
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &-file-btn {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #5b21b6;
+    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(76, 29, 149, 0.15);
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background: #f5f3ff;
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.7);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: $mobile-breakpoint) {
+      padding: 6px 10px;
+      font-size: 0.72rem;
+    }
   }
 
   &-model-select-wrap {
